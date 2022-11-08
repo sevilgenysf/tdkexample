@@ -47,6 +47,8 @@ function SearchView({ navigation }) {
   const bgOpacity = useRef(new Animated.Value(1)).current // Initial value for opacity: 0
   const heroHeight = useRef(new Animated.Value(HERO_HEIGHT)).current // Initial value for opacity: 0
 
+  const [homeData, setHomeData] = React.useState({})
+
   useEffect(() => {
     if (isSearchFocus) {
       // bg-opacity
@@ -137,7 +139,7 @@ function SearchView({ navigation }) {
         ) : (
           <Box px={16} py={40} flex={1}>
             <Box>
-              <Text color="textLight">Bir Deyim</Text>
+              <Text color="textLight">Bir Kelime</Text>
 
               <CardContainer
                 mt={10}

@@ -1,27 +1,12 @@
-import React, { useEffect, useRef } from 'react'
-
-import {
-  Animated,
-  Button,
-  ImageBackground,
-  StatusBar,
-  Text,
-  FlatList
-} from 'react-native'
-import { Logo } from '../components/icons'
-
-import Search from '../components/search'
-import Box from '../components/box'
+import React from 'react'
+import { StatusBar } from 'react-native'
 import { useIsFocused } from '@react-navigation/native'
-import Bg from '../components/bg'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
-import CardContainer, {
-  CardTitle,
-  CardSummary,
-  CardBody
-} from '../components/card'
-import SimpleCardContainer, { SimpleCardTitle } from '../components/simple-card'
+import SearchHistoryList from '../components/search-history-list'
+import SuggestionCard from '../components/suggestion-card'
+import Box from '../components/box'
+import HomeHeaderScreeen from '../components/homeHeaderScreen'
 
 function SearchView({ navigation }) {
   const DATA = [
@@ -39,46 +24,20 @@ function SearchView({ navigation }) {
     }
   ]
 
-  const HERO_HEIGHT = 230
-
   const [isSearchFocus, setSearchFocus] = React.useState(false)
   const isFocused = useIsFocused()
 
-  const bgOpacity = useRef(new Animated.Value(1)).current // Initial value for opacity: 0
-  const heroHeight = useRef(new Animated.Value(HERO_HEIGHT)).current // Initial value for opacity: 0
+  const [homeData, setHomeData] = React.useState(null)
 
-  const [homeData, setHomeData] = React.useState({})
+  const getHomeData = async () => {
+    const response = await fetch('https://sozluk.gov.tr/icerik')
+    const data = await response.json()
+    setHomeData(data)
+  }
 
-  useEffect(() => {
-    if (isSearchFocus) {
-      // bg-opacity
-      Animated.timing(bgOpacity, {
-        toValue: 0,
-        duration: 230,
-        useNativeDriver: false
-      }).start()
-      // hero-height
-      Animated.timing(heroHeight, {
-        toValue: 52 + 32,
-        duration: 230,
-        useNativeDriver: false
-      }).start()
-    } else {
-      // bg-opacity
-      Animated.timing(bgOpacity, {
-        toValue: 1,
-        duration: 230,
-        useNativeDriver: false
-      }).start()
-
-      //hero-height
-      Animated.timing(heroHeight, {
-        toValue: HERO_HEIGHT,
-        duration: 230,
-        useNativeDriver: false
-      }).start()
-    }
-  }, [bgOpacity, heroHeight, isSearchFocus])
+  React.useEffect(() => {
+    getHomeData()
+  }, [])
 
   return (
     <Box as={SafeAreaView} bg={isSearchFocus ? 'softRed' : 'red'} flex={1}>
@@ -89,86 +48,38 @@ function SearchView({ navigation }) {
         />
       )}
       {/* Header */}
-      <Box
-        as={Animated.View}
-        position="relative"
-        zIndex={1}
-        height={heroHeight}
-      >
-        <Box as={Animated.View} opacity={bgOpacity} mt={-120}>
-          <Bg pt={60} pb={26}>
-            <Box flex={1} alignItems="center" justifyContent="center">
-              <Logo color="white" width={100} />
-            </Box>
-          </Bg>
-        </Box>
-        {/* search */}
-        <Box
-          position="absolute"
-          left={0}
-          bottom={isSearchFocus ? 0 : -42}
-          p={16}
-          width="100%"
-        >
-          <Search onChangeFocus={(status) => setSearchFocus(status)} />
-        </Box>
-      </Box>
+      <HomeHeaderScreeen
+        isSearchFocus={isSearchFocus}
+        onSearchFocus={setSearchFocus}
+      />
       {/* Content */}
       <Box flex={1} bg="white" pt={isSearchFocus ? 0 : 26}>
         {isSearchFocus ? (
           <Box flex={1}>
-            <FlatList
-              style={{ padding: 16 }}
-              data={DATA}
-              keyExtractor={(item) => item.id}
-              showsVerticalScrollIndicator={false}
-              renderItem={({ item }) => (
-                <Box py={6}>
-                  <SimpleCardContainer>
-                    <SimpleCardTitle>{item.title}</SimpleCardTitle>
-                  </SimpleCardContainer>
-                </Box>
-              )}
-              ListHeaderComponent={
-                <Text color="textLight" style={{ marginBottom: 10 }}>
-                  Son aramalar
-                </Text>
-              }
-            />
+            <SearchHistoryList data={DATA} />
           </Box>
         ) : (
           <Box px={16} py={40} flex={1}>
-            <Box>
-              <Text color="textLight">Bir Kelime</Text>
+            <SuggestionCard
+              data={homeData?.kelime[0]}
+              title="Bir Kelime"
+              onPress={() =>
+                navigation.navigate('Detail', {
+                  keyword: homeData?.kelime[0].madde
+                })
+              }
+            />
 
-              <CardContainer
-                mt={10}
-                onPress={() =>
-                  navigation.navigate('Detail', { title: 'on para' })
-                }
-              >
-                <CardTitle>on para</CardTitle>
-                <CardSummary>çok az (para).</CardSummary>
-              </CardContainer>
-            </Box>
-
-            <Box mt={30}>
-              <Text color="textLight">Bir Deyim - Atasözü</Text>
-
-              <CardContainer
-                mt={10}
-                onPress={() =>
-                  navigation.navigate('Detail', {
-                    title: 'siyem siyem ağlamak'
-                  })
-                }
-              >
-                <CardTitle>siyem siyem ağlamak</CardTitle>
-                <CardSummary>
-                  hafif hafif, ince ince, durmadan gözyaşı dökmek.
-                </CardSummary>
-              </CardContainer>
-            </Box>
+            <SuggestionCard
+              mt={40}
+              data={homeData?.atasoz[0]}
+              title="Bir Deyim - Atasözü"
+              onPress={() =>
+                navigation.navigate('Detail', {
+                  keyword: homeData?.atasoz[0].madde
+                })
+              }
+            />
           </Box>
         )}
       </Box>

@@ -4,7 +4,12 @@ import theme from '../utils/theme'
 import Box from './box'
 import Text from './text'
 
-export function DetailSummaryItemContainer({ children, border, ...props }) {
+export default function DetailSummaryItemContainer({
+  children,
+  border,
+  data,
+  ...props
+}) {
   return (
     <Box position="relative" bg="white" px={26} py={20} {...props}>
       {border && (
@@ -17,25 +22,39 @@ export function DetailSummaryItemContainer({ children, border, ...props }) {
           bg="light"
         />
       )}
-      <Box flexDirection="row">
-        <Text color="textLight" ml={-14} mr={8}>
-          1
-        </Text>
-        <Text color="red">İsim</Text>
-      </Box>
-      <Box mt={8}>{children}</Box>
+      {/* Body */}
+      {data ? (
+        <Box>
+          <Box flexDirection="row">
+            <Text color="textLight" ml={-14} mr={8}>
+              {data.anlam_sira}
+            </Text>
+            <Text color="red">İsim</Text>
+          </Box>
+          <Box mt={8}>
+            <Text fontWeight="bold">{data.anlam}</Text>
+            {data.orneklerListe &&
+              data.orneklerListe.map((item) => (
+                <Box key={item.ornek_id}>
+                  <Text
+                    ml={12}
+                    mt={10}
+                    fontWeight="500"
+                    color={theme.colors.textLight}
+                  >
+                    {item.ornek}
+                    {'  '}
+                    <Text fontWeight="bold" color={theme.colors.textLight}>
+                      {item.yazar_id !== '0' && `- ${item.yazar[0].tam_adi}`}
+                    </Text>
+                  </Text>
+                </Box>
+              ))}
+          </Box>
+        </Box>
+      ) : (
+        children
+      )}
     </Box>
-  )
-}
-
-export function DetailSummaryItemTitle({ children, ...props }) {
-  return <Text fontWeight="bold">{children}</Text>
-}
-
-export function DetailSummaryItemSummary({ children, ...props }) {
-  return (
-    <Text ml={12} mt={10} fontWeight="500" color={theme.colors.textLight}>
-      {children}
-    </Text>
   )
 }
